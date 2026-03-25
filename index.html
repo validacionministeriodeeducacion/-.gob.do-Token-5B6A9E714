@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Certificados</title>
+    <link rel="icon" href="logo 2.png">
+
+    <style>
+        html { font-size: 82%; }
+        * { 
+            font-family: Arial, sans-serif; 
+            box-sizing: border-box; 
+        }
+        body { 
+            margin: 0; 
+            background: white; 
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar { 
+            width: 260px; 
+            height: 100vh; 
+            background-color: #26323a; 
+            color: white; 
+            position: fixed; 
+            left: 0; 
+            top: 0; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.2); 
+            transition: 0.3s; 
+            z-index: 1000;
+        }
+        .sidebar.mini { width: 60px; }
+
+        .menu-toggle { 
+            position: absolute; 
+            top: 12px; 
+            left: 12px; 
+            cursor: pointer; 
+            z-index: 1010;
+        }
+        .linea { 
+            width: 20px; 
+            height: 2px; 
+            background-color: white; 
+            margin: 4px 0; 
+        }
+
+        .logo { 
+            display: flex; 
+            align-items: center; 
+            padding: 12px 10px; 
+            border-bottom: 1px solid #444; 
+            gap: 8px; 
+            text-decoration: none; 
+            cursor: pointer; 
+        }
+        .logo img { width: 32px; height: 32px; border-radius: 50%; background: white; padding: 2px; }
+        .logo-text { color: #b0bec5; font-size: 16px; }
+        .logo:hover .logo-text { color: white; }
+        .sidebar.mini .logo-text { display: none; }
+
+        .menu { padding: 10px; }
+        .menu-title { font-size: 13px; color: #cfd8dc; margin-bottom: 8px; }
+        .sidebar.mini .menu-title { display: none; }
+        .menu-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            padding: 10px; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px; 
+            font-size: 14px; 
+            cursor: pointer; 
+        }
+        .menu-item img { width: 18px; height: 18px; filter: brightness(0) invert(0.7); }
+        .sidebar.mini .menu-item span { display: none; }
+        .sidebar.mini .menu-item { justify-content: center; }
+        .menu-item:hover { background-color: #34424b; }
+
+        /* CONTENIDO */
+        .main-wrapper { 
+            margin-left: 260px; 
+            transition: 0.3s; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            width: calc(100% - 260px);
+        }
+
+        .top-white { 
+            height: 48px; 
+            background: white; 
+            position: relative; 
+            border-bottom: 1px solid #eee;
+        }
+
+        .contenido { 
+            background: #f1f3f6; 
+            padding: 25px 20px; 
+            flex: 1;
+        }
+
+        .titulo { font-size: 26px; color: #000; margin-bottom: 5px; }
+        .subtitulo { font-size: 13px; color: #777; margin-bottom: 18px; }
+
+        .buscador { 
+            display: flex; 
+            justify-content: center; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .buscador input { 
+            width: 400px; 
+            max-width: 100%; 
+            height: 40px; 
+            font-size: 16px; 
+            padding: 0 12px; 
+            border: 1px solid #ccc; 
+            border-right: none; 
+            border-radius: 4px 0 0 4px; 
+        }
+        .buscador button { 
+            height: 40px; 
+            padding: 0 24px; 
+            font-size: 16px; 
+            background: #1e73d8; 
+            color: white; 
+            border: none; 
+            border-radius: 0 4px 4px 0; 
+            cursor: pointer; 
+        }
+
+        .contenedor-cuadros { 
+            display: flex; 
+            gap: 20px; 
+            align-items: flex-start; 
+        }
+        .cuadro-participante { 
+            width: 260px; 
+            background: white; 
+            border-radius: 6px; 
+            border-top: 4px solid #1e73d8; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+            padding-bottom: 25px; 
+        }
+        .cuadro-certificado { 
+            flex: 1; 
+            background: white; 
+            border-radius: 6px; 
+            border-top: 4px solid #f4c542; 
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1); 
+            position: relative; 
+            overflow-x: auto;
+        }
+
+        .cuadro-titulo { font-size: 18px; padding: 10px; border-bottom: 1px solid #ddd; }
+        .icono { text-align: center; padding: 15px 0; }
+        .icono-img { width: 60px; }
+        .nombre { text-align: center; font-size: 18px; padding-bottom: 15px; }
+        .divisor { border-top: 1px solid #ddd; margin-bottom: 12px; }
+        .info-flex { display: flex; justify-content: space-between; padding: 0 10px; }
+        .info-box { width: 48%; text-align: center; padding: 12px 0; }
+        .info-box:first-child { border-right: 1px solid #ddd; }
+        .info-num { font-weight: bold; font-size: 16px; }
+        .info-label { font-size: 15px; margin-top: 5px; line-height: 1.2; }
+
+        .badge-cert { 
+            position: absolute; 
+            top: 12px; 
+            right: 15px; 
+            background: #6c757d; 
+            color: white; 
+            font-size: 12px; 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-weight: bold; 
+        }
+
+        .tabla-cert { 
+            width: 100%; 
+            border-collapse: collapse; 
+            min-width: 680px;
+        }
+        .tabla-cert th { 
+            background: #f8f9fa;
+            font-weight: bold; 
+            border-bottom: 2px solid #ccc; 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .tabla-cert td { 
+            border-bottom: 1px solid #ddd; 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .btn-cert { 
+            background: #f4b400; 
+            border: none; 
+            padding: 8px 12px; 
+            cursor: pointer; 
+            border-radius: 4px; 
+            color: #333; 
+        }
+
+        .footer { 
+            background: #f1f3f6; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 20px; 
+            height: 50px; 
+            font-size: 15px; 
+            color: #555; 
+            border-top: 1px solid #ccc; 
+            margin-top: auto; 
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* ==================== RESPONSIVE (CELULAR) ==================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.mini {
+                transform: translateX(0);
+            }
+            
+            .main-wrapper {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+            
+            .contenedor-cuadros {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .cuadro-participante, 
+            .cuadro-certificado {
+                width: 100%;
+                max-width: 380px;
+            }
+            
+            .titulo { font-size: 23px; }
+            .contenido { padding: 20px 15px; }
+            
+            .buscador input {
+                width: 100%;
+                max-width: 340px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <a class="logo" onclick="irAlServicio()">
+        <img src="logo.png">
+        <span class="logo-text">Consulta de Certificados</span>
+    </a>
+
+    <div class="menu">
+        <p class="menu-title">MENÚ</p>
+        <a class="menu-item" onclick="irAlServicio()">
+            <img src="imagen 1.png">
+            <span>Consulta de Participante</span>
+        </a>
+    </div>
+</div>
+
+<div class="main-wrapper">
+    <div class="top-white">
+        <div class="menu-toggle" onclick="toggleMenu()">
+            <div class="linea"></div>
+            <div class="linea"></div>
+            <div class="linea"></div>
+        </div>
+    </div>
+
+    <div class="contenido">
+        <div class="titulo">Consulta de Certificados</div>
+        <div class="subtitulo">Buscar por No. de Documento Participante</div>
+
+        <div class="buscador">
+            <input type="text" placeholder="No. Documento" id="input-cedula">
+            <button onclick="buscarCertificado()">Buscar</button>
+        </div>
+
+        <div class="contenedor-cuadros">
+            <div class="cuadro-participante">
+                <div class="cuadro-titulo">Participante</div>
+                <div class="icono">
+                    <img id="participante-img" class="icono-img">
+                </div>
+                <div id="participante-nombre" class="nombre"></div>
+                <div class="divisor"></div>
+                <div class="info-flex">
+                    <div class="info-box">
+                        <div id="participante-documento" class="info-num"></div>
+                        <div class="info-label">No.<br>Documento</div>
+                    </div>
+                    <div class="info-box">
+                        <div id="participante-matricula" class="info-num"></div>
+                        <div class="info-label">MATRÍCULA</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cuadro-certificado">
+                <div class="cuadro-titulo">Certificados</div>
+                <div id="badge-cert" class="badge-cert"></div>
+
+                <table class="tabla-cert">
+                    <thead>
+                        <tr>
+                            <th>Capacitación</th>
+                            <th>Libro</th>
+                            <th>fol.</th>
+                            <th>No. Egresado</th>
+                            <th>Regional</th>
+                            <th>Ciudad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-certificados"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div><b onclick="irAlServicio()">Copyright © 2026</b> <a onclick="irAlServicio()">Consulta de Certificados</a></div>
+        <div><b>Versión V2-2026</b></div>
+    </div>
+</div>
+
+<script>
+function toggleMenu() {
+    document.querySelector('.sidebar').classList.toggle('mini');
+}
+
+function irAlServicio() {
+    window.location.href = "https://servicios.infotep.gob.do/Certificados/Forms/Default.aspx";
+}
+
+function buscarCertificado() {
+    alert("Simulación activa");
+}
+
+const participante = {
+    nombre: "CRISTIAN JOSE HENRIQUEZ MORA",
+    documento: "40202929465",
+    matricula: "5845612",
+    imagen: "imagen 2.png"
+};
+
+const certificado = {
+    lista: [
+        { capacitacion: "SERVICIO AL CLIENTE", libro: "574", folio: "112", egresado: "584653", regional: "PROGRESANDO CON SOLIDARIDAD CAPOTILLO", ciudad: "SANTO DOMINGO", pdf: "https://drive.google.com/file/d/1jPfnURMs_d_H_5uixxs8HWZy_FDlE9bu/preview" },
+        { capacitacion: "INFORMÁTICA BÁSICA", libro: "320", folio: "45", egresado: "584654", regional: "INFOTEP", ciudad: "SANTO DOMINGO", pdf: "https://drive.google.com/file/d/1t5eu_T26ZLeeag-XE7m6SBT75Z1xVxGc/preview" },
+        { capacitacion: "GESTIÓN DE CALIDAD", libro: "221", folio: "89", egresado: "584655", regional: "INFOTEP", ciudad: "SANTO DOMINGO", pdf: "https://drive.google.com/file/d/1iopFRQ97Ke-lp7Habp3kHnyb5MubloQ_/preview" }
+    ]
+};
+
+function actualizarDatos() {
+    document.getElementById("participante-nombre").innerHTML = participante.nombre;
+    document.getElementById("participante-documento").innerHTML = participante.documento;
+    document.getElementById("participante-matricula").innerHTML = participante.matricula;
+    document.getElementById("participante-img").src = participante.imagen;
+
+    document.getElementById("badge-cert").innerHTML = certificado.lista.length + " Certificados";
+
+    const tbody = document.getElementById("tabla-certificados");
+    tbody.innerHTML = certificado.lista.map(c => `
+        <tr>
+            <td>${c.capacitacion}</td>
+            <td>${c.libro}</td>
+            <td>${c.folio}</td>
+            <td>${c.egresado}</td>
+            <td>${c.regional}</td>
+            <td>${c.ciudad}</td>
+            <td><button class="btn-cert" onclick="verPDF('${c.pdf}')">Ver Certificado</button></td>
+        </tr>
+    `).join("");
+}
+
+function verPDF(linkPDF) {
+    window.open(linkPDF, '_blank');
+}
+
+actualizarDatos();
+</script>
+
+</body>
+</html>
